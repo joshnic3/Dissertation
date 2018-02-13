@@ -52,6 +52,10 @@ for(i = 0; i < resultsTitle.length; i++) {
         grouped[j] = [i];
     }
 }
+// *** - Reorder grouped results here - ***
+
+//sendToFrontOfGroup(2, 1);
+
 
 // Process sorted data.
 for(i = 0; i < grouped.length; i++) {
@@ -62,7 +66,7 @@ for(i = 0; i < grouped.length; i++) {
 }
 
 // Print out data structure
-//console.log(grouped);
+console.log(grouped);
 
 // Print metrics!
 console.log("No. of unique URLs: " + grouped.length);
@@ -73,7 +77,6 @@ console.log("Percentage of results space saved: " + (noOfResultsGrouped/resultsT
 chrome.runtime.sendMessage({uniqueURLs:grouped.length});
 chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped});
 chrome.runtime.sendMessage({spaceSaved:(noOfResultsGrouped/resultsTitle.length)*100});
-
 
 // ***--------------------------------------------------------------------------------------***
 
@@ -193,4 +196,26 @@ function findIndexOfGroup(domain) {
 function printArrays() {
     console.log(resultsTitle[i]);
     console.log(domains[i]);
+}
+
+function sendToFrontOfGroup(group, groupIndexToMove) {
+    if (groupIndexToMove >= grouped[group].length)
+    {
+        console.log("Caught Error: Tried to move out of bounds group index.");
+        return;
+    }
+    var value = grouped[group][groupIndexToMove];
+    while (groupIndexToMove > 0) {
+        // Get values of index and index - 1.
+        previousValue = grouped[group][groupIndexToMove - 1]
+        value = grouped[group][groupIndexToMove]
+
+        // Swap.
+        grouped[group][groupIndexToMove] = previousValue;
+        grouped[group][groupIndexToMove - 1] = value;
+
+        // Reduce index.
+        groupIndexToMove = groupIndexToMove - 1;
+    }
+    
 }
