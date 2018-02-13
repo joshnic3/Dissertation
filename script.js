@@ -1,16 +1,7 @@
-// NOTES
-// class="nrgt" already seems to group, best example is on search term "apple", 
-// this should be left as requirement is already met.
-//
-// Some links are put in a "People also ask section, so the user may not see the original URL result."
-//
-// Remember to use var x on for loops or js will use the same var
-
 // HTML reference points.
 const RESULT_TITLE_CLASS = "r";
 const RESULT_CONTENT_CLASS = "s";
 const RESULT_URL_DISPLAY_CLASS = "f kv _SWb";
-const RESULT_TABLED = "nrgt";
 
 const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAJCAYAAAAGuM1UAAAARElEQVR4AZXLoQ3AMBAEwXFP7ielpcvHIQdPLwUs24HzMw8Gd5kuJq8Xs6DMJq9TUZ9PQEF1DmiozwELyryBoDp3sPcBE+gdTR3BcJAAAAAASUVORK5CYII=";
 
@@ -26,13 +17,6 @@ var url;
 var noOfResultsGrouped = 0;
 // Traverse list of results
 for(i = 0; i < resultsTitle.length; i++) {
-    
-    // TEMP
-    console.log(resultsTitle[i].parentElement.parentElement.classList)
-    if (resultsTitle[i].parentElement.parentElement.parentElement.classList.contains(RESULT_TABLED)) {
-        console.log("Tabled result found.");
-    }
-
     isGrouped = false;
 
     // Compare similarity of each domain with first element in group.
