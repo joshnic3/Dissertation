@@ -15,7 +15,8 @@ var  grouped = [];
 var isGrouped;
 var url;
 var noOfResultsGrouped = 0;
-// Traverse list of results
+
+// Traverse and group list of results.
 for(i = 0; i < resultsTitle.length; i++) {
     isGrouped = false;
 
@@ -29,21 +30,9 @@ for(i = 0; i < resultsTitle.length; i++) {
 
         // If there are similar results group them.
         if (similarity(urlToCompare, groupedUrl) >= 1) {
-
             grouped[j].push(i);
             isGrouped = true
-            
-            // Hide repeated results.
-            try {
-                resultsTitle[i].style.display = 'none';
-                resultsContent[i].style.display = 'none';
-            }
-            catch(err)
-            {
-                console.log("Caught Error: Could not hide element.");
-            }
-
-           noOfResultsGrouped++;
+            noOfResultsGrouped++;
         }
     }
 
@@ -52,6 +41,26 @@ for(i = 0; i < resultsTitle.length; i++) {
         grouped[j] = [i];
     }
 }
+
+// Hide grouped elements.
+for(i = 0; i < grouped.length; i++) {
+    if (grouped[i].length > 1) {
+        for(j = 0; j < grouped[i].length; j++) {
+            // Hide repeated results.
+            try {
+                resultsTitle[grouped[i][j]].style.display = 'none';
+                resultsContent[grouped[i][j]].style.display = 'none';
+            }
+            catch(err)
+            {
+                console.log("Caught Error: Could not hide element.");
+            }
+        }
+    }
+}
+
+// Reorder grouped results.
+//sendToFrontOfGroup(0, 1);
 
 // Process sorted data.
 for(i = 0; i < grouped.length; i++) {
@@ -62,7 +71,7 @@ for(i = 0; i < grouped.length; i++) {
 }
 
 // Print out data structure
-//console.log(grouped);
+console.log(grouped);
 
 // Print metrics!
 console.log("No. of unique URLs: " + grouped.length);
@@ -74,15 +83,18 @@ chrome.runtime.sendMessage({uniqueURLs:grouped.length});
 chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped});
 chrome.runtime.sendMessage({spaceSaved:(noOfResultsGrouped/resultsTitle.length)*100});
 
-
 // ***--------------------------------------------------------------------------------------***
 
+// similarityValue is the number of similar results, so We can just use the length of the group.
 function injectHTMLModification(similarityValue,group) {
     var index = grouped[group][0];
     try {
         // Not sure what this is checking?
         if (resultsContent[index].getElementsByClassName(RESULT_URL_DISPLAY_CLASS).length > 0){
-            
+            // Show main (lead) result.
+            resultsTitle[index].style.display = 'block';
+            resultsContent[index].style.display = 'block';
+
             // Inject similarity value and expand button.
             var elementToModify = resultsContent[index].getElementsByClassName(RESULT_URL_DISPLAY_CLASS)[0];
 
@@ -193,4 +205,25 @@ function findIndexOfGroup(domain) {
 function printArrays() {
     console.log(resultsTitle[i]);
     console.log(domains[i]);
+}
+
+function sendToFrontOfGroup(group, groupIndexToMove) {
+    if (groupIndexToMove >= grouped[group].length)
+    {
+        console.log("Caught Error: Tried to move out of bounds group index.");
+        return;
+    }
+    var value = grouped[group][groupIndexToMove];
+    while (groupIndexToMove > 0) {
+        // Get values of index and index - 1.
+        previousValue = grouped[group][groupIndexToMove - 1]
+        value = grouped[group][groupIndexToMove]
+
+        // Swap.
+        grouped[group][groupIndexToMove] = previousValue;
+        grouped[group][groupIndexToMove - 1] = value;
+
+        // Reduce index.
+        groupIndexToMove = groupIndexToMove - 1;
+    }   
 }
