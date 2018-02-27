@@ -18,8 +18,8 @@
 
     "content_scripts": [
         {
-          "matches": ["https://www.google.co.uk/*"],
-          "js": ["script.js"]
+          "matches": ["https://duckduckgo.com/*"],
+          "js": ["script-duckduckgo.js"]
         }
       ]
 }
