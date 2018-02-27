@@ -3,7 +3,13 @@ const RESULT_TITLE_CLASS = "r";
 const RESULT_CONTENT_CLASS = "s";
 const RESULT_URL_DISPLAY_CLASS = "f kv _SWb";
 
+// Other contants.
 const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAJCAYAAAAGuM1UAAAARElEQVR4AZXLoQ3AMBAEwXFP7ielpcvHIQdPLwUs24HzMw8Gd5kuJq8Xs6DMJq9TUZ9PQEF1DmiozwELyryBoDp3sPcBE+gdTR3BcJAAAAAASUVORK5CYII=";
+
+// Likely to be replaced with a UI input and default.
+// Also, extension only works on "www.google.co.uk"
+const PRIORITY_DOMAIN_EXTENSION = ".co.uk";
+
 
 // Extract data from HTML.
 var resultsTitle = document.getElementsByClassName(RESULT_TITLE_CLASS);
@@ -24,9 +30,9 @@ for(i = 0; i < resultsTitle.length; i++) {
     for(j = 0; j < grouped.length; j++) {
 
         // Extract URL from next element to compare.
-        urlToCompare = getAttributeFromURL(getURL(resultsTitle[i]),0);
+        urlToCompare = getDomainFromURL(getURL(resultsTitle[i]));
         // Extract URL from first element in group.
-        groupedUrl = getAttributeFromURL(getURL(resultsTitle[grouped[j][0]]),0)
+        groupedUrl = getDomainFromURL(getURL(resultsTitle[grouped[j][0]]))
 
         // If there are similar results group them.
         if (similarity(urlToCompare, groupedUrl) >= 1) {
@@ -42,7 +48,7 @@ for(i = 0; i < resultsTitle.length; i++) {
     }
 }
 
-// Hide grouped elements.
+// Process grouped elements.
 for(i = 0; i < grouped.length; i++) {
     if (grouped[i].length > 1) {
         for(j = 0; j < grouped[i].length; j++) {
@@ -55,12 +61,23 @@ for(i = 0; i < grouped.length; i++) {
             {
                 console.log("Caught Error: Could not hide element.");
             }
+
+            // Move prioritied domain extension to front of group.
+            var url = getURL(resultsTitle[grouped[i][j]])
+            var domainName = getDomainFromURL(getURL(resultsTitle[grouped[i][j]]))
+            var splitUrl = url.split("/");
+            var domainExtension = splitUrl[2].split(domainName);
+
+            if (domainExtension[1] == PRIORITY_DOMAIN_EXTENSION) {
+                console.log("Prioritied " + getURL(resultsTitle[grouped[i][j]]))
+                sendToFrontOfGroup(i, j);
+            }
+
+            // Now maybe prioitise smallest URLs to ensure results closest to URL homepage are displayed first.
+            // The order of this for loop is important!
         }
     }
 }
-
-// Reorder grouped results.
-//sendToFrontOfGroup(0, 1);
 
 // Process sorted data.
 for(i = 0; i < grouped.length; i++) {
@@ -130,7 +147,7 @@ function injectHTMLModification(similarityValue,group) {
 function generateHTMLForInjection(group) {
     var header = "<hr> ";
 
-    var url = getAttributeFromURL(getURL(resultsTitle[grouped[group][0]]),0)
+    var url = getDomainFromURL(getURL(resultsTitle[grouped[group][0]]))
     if (url != null) {
         var brief = "<br> Showing alternate results for \"" + url + "\". <br> <br> <div id='expandedContent>'";
     }
@@ -163,14 +180,22 @@ function getURL(node) {
     }
 }
 
-function getAttributeFromURL(url,attribute) {
+function getDomainFromURL(url) {
     if (url == null){
         return null;
     }
     var d = url.split("://");
     var urlAttributes = d[1].split("/");
-    return urlAttributes[attribute];    
+    urlAttributes = urlAttributes[0].split(".");
+
+    if (urlAttributes.length <= 2) {
+        return urlAttributes[0];  
+    }
+    else {
+        return urlAttributes[1];    
+    }    
 }
+
 
 function getSimilarityValue(item,items) {
     totalSimilarityValue = 0; 
