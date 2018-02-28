@@ -1,4 +1,5 @@
 // HTML reference points.
+const RESULTS_BODY_CONTAINER_CLASS = "links_main links_deep result__body";
 const RESULT_TITLE_CLASS = "result__title";
 const RESULT_SNIPPET_CLASS = "result__snippet";
 const RESULT_EXTRAS_CLASS = "result__extras";
@@ -10,7 +11,8 @@ const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAAN
 // Also, extension only works on "www.google.co.uk"
 const PRIORITY_DOMAIN_EXTENSION = ".co.uk";
 
-// Extract data from HTML.
+// Extract data from HTML. (defo can be simplified to just on of these i think)
+var resultsBody = document.getElementsByClassName(RESULTS_BODY_CONTAINER_CLASS);
 var resultsTitle = document.getElementsByClassName(RESULT_TITLE_CLASS);
 var resultsSnippet = document.getElementsByClassName(RESULT_SNIPPET_CLASS);
 var resultsExtras = document.getElementsByClassName(RESULT_EXTRAS_CLASS);
@@ -23,6 +25,9 @@ var url;
 var noOfResultsGrouped = 0;
 
 //Temp doesnt enter for loop
+console.log(resultsTitle.length);
+
+
 
 // Traverse and group list of results.
 for(i = 0; i < resultsTitle.length; i++) {
@@ -50,52 +55,52 @@ for(i = 0; i < resultsTitle.length; i++) {
     }
 }
 
-// // Process grouped elements.
-// for(i = 0; i < grouped.length; i++) {
-//     if (grouped[i].length > 1) {
-//         for(j = 0; j < grouped[i].length; j++) {
-//             // Hide repeated results.
-//             try {
-//                 resultsTitle[grouped[i][j]].style.display = 'none';
-//                 resultsContent[grouped[i][j]].style.display = 'none';
-//             }
-//             catch(err)
-//             {
-//                 console.log("Caught Error: Could not hide element.");
-//             }
+// Process grouped elements.
+for(i = 0; i < grouped.length; i++) {
+    if (grouped[i].length > 1) {
+        for(j = 0; j < grouped[i].length; j++) {
+            // Hide repeated results.
+            try {
+                // Minimising done here will work on google too.
+                resultsBody[grouped[i][j]].style.display = 'none';
+            }
+            catch(err)
+            {
+                console.log("Caught Error: Could not hide element.");
+            }
 
-//             // Move prioritied domain extension to front of group.
-//             var url = getURL(resultsTitle[grouped[i][j]])
-//             var domainName = getDomainFromURL(getURL(resultsTitle[grouped[i][j]]))
-//             var splitUrl = url.split("/");
-//             var domainExtension = splitUrl[2].split(domainName);
+            // Move prioritied domain extension to front of group.
+            var url = getURL(resultsTitle[grouped[i][j]])
+            var domainName = getDomainFromURL(getURL(resultsTitle[grouped[i][j]]))
+            var splitUrl = url.split("/");
+            var domainExtension = splitUrl[2].split(domainName);
 
-//             if (domainExtension[1] == PRIORITY_DOMAIN_EXTENSION) {
-//                 console.log("Prioritied " + getURL(resultsTitle[grouped[i][j]]))
-//                 sendToFrontOfGroup(i, j);
-//             }
+            if (domainExtension[1] == PRIORITY_DOMAIN_EXTENSION) {
+                console.log("Prioritied " + getURL(resultsTitle[grouped[i][j]]))
+                sendToFrontOfGroup(i, j);
+            }
 
-//             // Now maybe prioitise smallest URLs to ensure results closest to URL homepage are displayed first.
-//             // The order of this for loop is important!
-//         }
-//     }
-// }
+            // Now maybe prioitise smallest URLs to ensure results closest to URL homepage are displayed first.
+            // The order of this for loop is important!
+        }
+    }
+}
 
-// // Process sorted data.
-// for(i = 0; i < grouped.length; i++) {
-//     if (grouped[i].length > 1) {
-//         // Inject code modification into first element of each group.
-//         injectHTMLModification(grouped[i].length - 1, i);
-//     }
-// }
+// Process sorted data.
+for(i = 0; i < grouped.length; i++) {
+    if (grouped[i].length > 1) {
+        // Inject code modification into first element of each group.
+        injectHTMLModification(grouped[i].length - 1, i);
+    }
+}
 
 // Print out data structure
 console.log(grouped);
 
 // Temp print
-console.log(resultsTitle);
-console.log(resultsSnippet);
-console.log(resultsExtras);
+// console.log(resultsTitle);
+// console.log(resultsSnippet);
+// console.log(resultsExtras);
 
 // // Print metrics!
 // console.log("No. of unique URLs: " + grouped.length);
@@ -114,13 +119,14 @@ function injectHTMLModification(similarityValue,group) {
     var index = grouped[group][0];
     try {
         // Not sure what this is checking?
-        if (resultsContent[index].getElementsByClassName(RESULT_URL_DISPLAY_CLASS).length > 0){
+        // Doesnt get in loop
+        //if (resultsExtras[index].getElementsByClassName(RESULT_EXTRAS_CLASS).length > 0){
+            
             // Show main (lead) result.
-            resultsTitle[index].style.display = 'block';
-            resultsContent[index].style.display = 'block';
+            resultsBody[index].style.display = 'block';
 
             // Inject similarity value and expand button.
-            var elementToModify = resultsContent[index].getElementsByClassName(RESULT_URL_DISPLAY_CLASS)[0];
+            var elementToModify = resultsExtras[index];
 
             elementToModify.innerHTML = elementToModify.innerHTML + " [" + similarityValue + "] <img id='expandButton" + index + "' src='" + GOOGLE_DOWN_ARROW_IMAGE_RESOURCE + "'/>";
             document.getElementById("expandButton" + index).style.transform = 'rotate(0deg)';
@@ -144,13 +150,14 @@ function injectHTMLModification(similarityValue,group) {
                     document.getElementById("expandableDiv" + index).style.display = 'none';
                 }
             });
-        }
+       // }
     }
     catch(err) {
         console.log("Caught Error: Something is going wrong with getElementsByClassName.")
     }
 }
 
+// NEeds changing but may hve been chnaged incorrectly.
 function generateHTMLForInjection(group) {
     var header = "<hr> ";
 
@@ -166,10 +173,14 @@ function generateHTMLForInjection(group) {
     // need to know which group result is in
     var titleAndContent = '';
     for(var i = 1; i < grouped[group].length; i++) {
-        var title = "<br>" + resultsTitle[grouped[group][i]].innerHTML;
-        var content = "<br>" + resultsContent[grouped[group][i]].innerHTML;
-        titleAndContent += title + content;
+        // var title = "<br>" + resultsTitle[grouped[group][i]].innerHTML;
+        // var content = "<br>" + results[grouped[group][i]].innerHTML;
+        // titleAndContent += title + content;
+        //console.log("group:" +group + " index:" +grouped[group][i])
+        titleAndContent += "<br>" + resultsBody[grouped[group][i]].innerHTML;
     }
+
+    console.log(grouped[group].length);
 
     var footer = "<br> <br> </div> <hr> ";
     out = header + brief + titleAndContent + footer;
@@ -177,9 +188,10 @@ function generateHTMLForInjection(group) {
 }
 
 function getURL(node) {
+    // Index in the node array specifies which part of the the element holds the url.
+    // it was c[0] for google
     var c = node.childNodes;
-    console.log(c);
-    var url = c[0].getAttribute("href");
+    var url = c[1].getAttribute("href");
     if ( ( url != null ) && ( url != "" ) ) {
         return url;
     }
