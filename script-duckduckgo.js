@@ -12,6 +12,10 @@ const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAAN
 const PRIORITY_DOMAIN_EXTENSION = ".co.uk";
 
 // Extract data from HTML. (defo can be simplified to just on of these i think)
+// Refactor everything to be based off resultsBody. 
+// e.g. resultsBody[grouped[group][i]].getElementsByClassName(RESULT_TITLE_CLASS)[0]
+// then you can remove resultsTitle, Snippet and Extras
+// note for write up, doing it this way reduces the amount of ram used. show before and after.
 var resultsBody = document.getElementsByClassName(RESULTS_BODY_CONTAINER_CLASS);
 var resultsTitle = document.getElementsByClassName(RESULT_TITLE_CLASS);
 var resultsSnippet = document.getElementsByClassName(RESULT_SNIPPET_CLASS);
@@ -23,11 +27,6 @@ var  grouped = [];
 var isGrouped;
 var url;
 var noOfResultsGrouped = 0;
-
-//Temp doesnt enter for loop
-console.log(resultsTitle.length);
-
-
 
 // Traverse and group list of results.
 for(i = 0; i < resultsTitle.length; i++) {
@@ -61,12 +60,13 @@ for(i = 0; i < grouped.length; i++) {
         for(j = 0; j < grouped[i].length; j++) {
             // Hide repeated results.
             try {
-                // Minimising done here will work on google too.
+                // Minimising here?.
                 resultsBody[grouped[i][j]].style.display = 'none';
             }
             catch(err)
             {
-                console.log("Caught Error: Could not hide element.");
+                // If i dont get his error it works.
+                console.log("Caught Error: Could not hide element. (Index: " + grouped[i][j] + ")");
             }
 
             // Move prioritied domain extension to front of group.
@@ -98,19 +98,24 @@ for(i = 0; i < grouped.length; i++) {
 console.log(grouped);
 
 // Temp print
-// console.log(resultsTitle);
-// console.log(resultsSnippet);
-// console.log(resultsExtras);
+console.log(resultsTitle.length);
+console.log(resultsSnippet.length);
+console.log(resultsExtras.length);
 
-// // Print metrics!
-// console.log("No. of unique URLs: " + grouped.length);
-// console.log("No. of results grouped: " + noOfResultsGrouped);
-// console.log("Percentage of results space saved: " + (noOfResultsGrouped/resultsTitle.length)*100 + "%");
+// Print metrics!
+console.log("No. of unique URLs: " + grouped.length);
+console.log("No. of results grouped: " + noOfResultsGrouped);
+console.log("Percentage of results space saved: " + (noOfResultsGrouped/resultsTitle.length)*100 + "%");
 
-// // Attempting to communicate with popup.html using messenger API.
-// chrome.runtime.sendMessage({uniqueURLs:grouped.length});
-// chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped});
-// chrome.runtime.sendMessage({spaceSaved:(noOfResultsGrouped/resultsTitle.length)*100});
+// Attempting to communicate with popup.html using messenger API.
+chrome.runtime.sendMessage({uniqueURLs:grouped.length});
+chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped});
+chrome.runtime.sendMessage({spaceSaved:(noOfResultsGrouped/resultsTitle.length)*100});
+
+//TEMP
+if (resultsTitle.length != resultsExtras) {
+    console.log("resultsTitle and resultsExtras are different lengths.");
+}
 
 // ***--------------------------------------------------------------------------------------***
 
@@ -126,7 +131,7 @@ function injectHTMLModification(similarityValue,group) {
             resultsBody[index].style.display = 'block';
 
             // Inject similarity value and expand button.
-            var elementToModify = resultsExtras[index];
+            var elementToModify = resultsTitle[index];
 
             elementToModify.innerHTML = elementToModify.innerHTML + " [" + similarityValue + "] <img id='expandButton" + index + "' src='" + GOOGLE_DOWN_ARROW_IMAGE_RESOURCE + "'/>";
             document.getElementById("expandButton" + index).style.transform = 'rotate(0deg)';
@@ -157,7 +162,6 @@ function injectHTMLModification(similarityValue,group) {
     }
 }
 
-// NEeds changing but may hve been chnaged incorrectly.
 function generateHTMLForInjection(group) {
     var header = "<hr> ";
 
@@ -171,16 +175,27 @@ function generateHTMLForInjection(group) {
     }
     
     // need to know which group result is in
+
+    
+
     var titleAndContent = '';
     for(var i = 1; i < grouped[group].length; i++) {
-        // var title = "<br>" + resultsTitle[grouped[group][i]].innerHTML;
-        // var content = "<br>" + results[grouped[group][i]].innerHTML;
-        // titleAndContent += title + content;
-        //console.log("group:" +group + " index:" +grouped[group][i])
-        titleAndContent += "<br>" + resultsBody[grouped[group][i]].innerHTML;
-    }
 
-    console.log(grouped[group].length);
+        //TEMP
+        //console.log(resultsBody[grouped[group][i]].getElementsByClassName(RESULT_TITLE_CLASS)[0].innerHTML)
+
+        var title = "<br>" + resultsBody[grouped[group][i]].getElementsByClassName(RESULT_TITLE_CLASS)[0].innerHTML;
+        var snippet = "<br>" + resultsBody[grouped[group][i]].getElementsByClassName(RESULT_SNIPPET_CLASS)[0].innerHTML;
+
+         var a = resultsBody[grouped[group][i]].getElementsByClassName(RESULT_EXTRAS_CLASS)[0];
+         if (a != null) {
+            var extras = "<br>" + a.innerHTML + "<br>";
+         }
+         else{
+            var extras = "<br>";
+         }
+         titleAndContent += title + snippet + extras;
+    }
 
     var footer = "<br> <br> </div> <hr> ";
     out = header + brief + titleAndContent + footer;
