@@ -58,14 +58,12 @@ for(i = 0; i < resultsTitle.length; i++) {
 for(i = 0; i < grouped.length; i++) {
     if (grouped[i].length > 1) {
         for(j = 0; j < grouped[i].length; j++) {
-            // Hide repeated results.
+            // Hide repeated results and catch any error.
             try {
-                // Minimising here?.
                 resultsBody[grouped[i][j]].style.display = 'none';
             }
             catch(err)
             {
-                // If i dont get his error it works.
                 console.log("Caught Error: Could not hide element. (Index: " + grouped[i][j] + ")");
             }
 
@@ -97,65 +95,45 @@ for(i = 0; i < grouped.length; i++) {
 // Print out data structure
 console.log(grouped);
 
-// Temp print
-console.log(resultsTitle.length);
-console.log(resultsSnippet.length);
-console.log(resultsExtras.length);
-
 // Print metrics!
 console.log("No. of unique URLs: " + grouped.length);
 console.log("No. of results grouped: " + noOfResultsGrouped);
 console.log("Percentage of results space saved: " + (noOfResultsGrouped/resultsTitle.length)*100 + "%");
-
-// Attempting to communicate with popup.html using messenger API.
-chrome.runtime.sendMessage({uniqueURLs:grouped.length});
-chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped});
-chrome.runtime.sendMessage({spaceSaved:(noOfResultsGrouped/resultsTitle.length)*100});
-
-//TEMP
-if (resultsTitle.length != resultsExtras) {
-    console.log("resultsTitle and resultsExtras are different lengths.");
-}
 
 // ***--------------------------------------------------------------------------------------***
 
 // similarityValue is the number of similar results, so We can just use the length of the group.
 function injectHTMLModification(similarityValue,group) {
     var index = grouped[group][0];
-    try {
-        // Not sure what this is checking?
-        // Doesnt get in loop
-        //if (resultsExtras[index].getElementsByClassName(RESULT_EXTRAS_CLASS).length > 0){
-            
-            // Show main (lead) result.
-            resultsBody[index].style.display = 'block';
+    try {            
+        // Show main (lead) result.
+        resultsBody[index].style.display = 'block';
 
-            // Inject similarity value and expand button.
-            var elementToModify = resultsTitle[index];
+        // Inject similarity value and expand button.
+        var elementToModify = resultsTitle[index];
 
-            elementToModify.innerHTML = elementToModify.innerHTML + " [" + similarityValue + "] <img id='expandButton" + index + "' src='" + GOOGLE_DOWN_ARROW_IMAGE_RESOURCE + "'/>";
-            document.getElementById("expandButton" + index).style.transform = 'rotate(0deg)';
+        elementToModify.innerHTML = elementToModify.innerHTML + " [" + similarityValue + "] <img id='expandButton" + index + "' src='" + GOOGLE_DOWN_ARROW_IMAGE_RESOURCE + "'/>";
+        document.getElementById("expandButton" + index).style.transform = 'rotate(0deg)';
 
-            // Inject expandable area (hidden as default).        
-            var hTMLToInject = "<div id='expandableDiv" + index + "'> " + generateHTMLForInjection(group) + " </div>";
-            elementToModify.parentElement.outerHTML = elementToModify.parentElement.outerHTML + hTMLToInject;
-            document.getElementById("expandableDiv" + index).style.display = 'none';
-        
-            // Add button action listener
-            document.getElementById("expandButton" + index).addEventListener("click", function(){
-                // Toggle function is controlled here as each button controls its own result.
-                if (document.getElementById("expandButton" + index).style.transform == 'rotate(0deg)') {
-                    // If button clicked and toggle is CLOSED.
-                    document.getElementById("expandButton" + index).style.transform = 'rotate(180deg)';
-                    document.getElementById("expandableDiv" + index).style.display = 'block';
-                }
-                else {
-                    // If button clicked and toggle is OPEN.
-                    document.getElementById("expandButton" + index).style.transform = 'rotate(0deg)';
-                    document.getElementById("expandableDiv" + index).style.display = 'none';
-                }
-            });
-       // }
+        // Inject expandable area (hidden as default).        
+        var hTMLToInject = "<div id='expandableDiv" + index + "'> " + generateHTMLForInjection(group) + " </div>";
+        elementToModify.parentElement.outerHTML = elementToModify.parentElement.outerHTML + hTMLToInject;
+        document.getElementById("expandableDiv" + index).style.display = 'none';
+    
+        // Add button action listener
+        document.getElementById("expandButton" + index).addEventListener("click", function(){
+            // Toggle function is controlled here as each button controls its own result.
+            if (document.getElementById("expandButton" + index).style.transform == 'rotate(0deg)') {
+                // If button clicked and toggle is CLOSED.
+                document.getElementById("expandButton" + index).style.transform = 'rotate(180deg)';
+                document.getElementById("expandableDiv" + index).style.display = 'block';
+            }
+            else {
+                // If button clicked and toggle is OPEN.
+                document.getElementById("expandButton" + index).style.transform = 'rotate(0deg)';
+                document.getElementById("expandableDiv" + index).style.display = 'none';
+            }
+        });
     }
     catch(err) {
         console.log("Caught Error: Something is going wrong with getElementsByClassName.")
@@ -173,17 +151,9 @@ function generateHTMLForInjection(group) {
     {
         var brief = "<div id='expandedContent>";
     }
-    
-    // need to know which group result is in
-
-    
 
     var titleAndContent = '';
     for(var i = 1; i < grouped[group].length; i++) {
-
-        //TEMP
-        //console.log(resultsBody[grouped[group][i]].getElementsByClassName(RESULT_TITLE_CLASS)[0].innerHTML)
-
         var title = "<br>" + resultsBody[grouped[group][i]].getElementsByClassName(RESULT_TITLE_CLASS)[0].innerHTML;
         var snippet = "<br>" + resultsBody[grouped[group][i]].getElementsByClassName(RESULT_SNIPPET_CLASS)[0].innerHTML;
 
@@ -230,7 +200,6 @@ function getDomainFromURL(url) {
         return urlAttributes[1];    
     }    
 }
-
 
 function getSimilarityValue(item,items) {
     totalSimilarityValue = 0; 
