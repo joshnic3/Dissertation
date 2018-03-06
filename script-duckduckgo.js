@@ -11,6 +11,12 @@ const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAAN
 // Default will be null or blank;
 const PRIORITY_DOMAIN_EXTENSION = ".co.uk";
 
+// Redirect to duckduckgo.com/html if needed.
+console.log(window.location.href);
+if (window.location.href == "https://duckduckgo.com/") {
+    window.location.href = "http://duckduckgo.com/html";
+}
+
 // Extract data from HTML.
 var resultsBody = document.getElementsByClassName(RESULTS_BODY_CONTAINER_CLASS);
 
