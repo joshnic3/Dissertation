@@ -9,11 +9,11 @@
     },
 
     "background": {
-        "scripts": ["background.js"]
+        "scripts": ["popup.js"] // Required to make popup.js persistant.
     },
     
     "permissions": [
-        "geolocation"
+        "storage"
     ],
 
     "content_scripts": [
