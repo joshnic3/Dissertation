@@ -17,9 +17,9 @@ const PRIORITY_DOMAIN_EXTENSION = ".co.uk";
 // then you can remove resultsTitle, Snippet and Extras
 // note for write up, doing it this way reduces the amount of ram used. show before and after.
 var resultsBody = document.getElementsByClassName(RESULTS_BODY_CONTAINER_CLASS);
-var resultsTitle = document.getElementsByClassName(RESULT_TITLE_CLASS);
-var resultsSnippet = document.getElementsByClassName(RESULT_SNIPPET_CLASS);
-var resultsExtras = document.getElementsByClassName(RESULT_EXTRAS_CLASS);
+// var resultsTitle = document.getElementsByClassName(RESULT_TITLE_CLASS);
+// var resultsSnippet = document.getElementsByClassName(RESULT_SNIPPET_CLASS);
+// var resultsExtras = document.getElementsByClassName(RESULT_EXTRAS_CLASS);
 
 // Multi-dimensional array of URLs grouped according to similarity value, at the moment it is just a one to one match.
 var  grouped = [];
@@ -29,16 +29,16 @@ var url;
 var noOfResultsGrouped = 0;
 
 // Traverse and group list of results.
-for(i = 0; i < resultsTitle.length; i++) {
+for(i = 0; i < resultsBody.length; i++) {
     isGrouped = false;
 
     // Compare similarity of each domain with first element in group.
     for(j = 0; j < grouped.length; j++) {
 
         // Extract URL from next element to compare.
-        urlToCompare = getDomainFromURL(getURL(resultsTitle[i]));
+        urlToCompare = getDomainFromURL(getURL(resultsBody[i].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
         // Extract URL from first element in group.
-        groupedUrl = getDomainFromURL(getURL(resultsTitle[grouped[j][0]]))
+        groupedUrl = getDomainFromURL(getURL(resultsBody[grouped[j][0]].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
 
         // If there are similar results group them.
         if (similarity(urlToCompare, groupedUrl) >= 1) {
@@ -68,13 +68,13 @@ for(i = 0; i < grouped.length; i++) {
             }
 
             // Move prioritied domain extension to front of group.
-            var url = getURL(resultsTitle[grouped[i][j]])
-            var domainName = getDomainFromURL(getURL(resultsTitle[grouped[i][j]]))
+            var url = getURL(resultsBody[grouped[i][j]].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
+            var domainName = getDomainFromURL(url);
             var splitUrl = url.split("/");
             var domainExtension = splitUrl[2].split(domainName);
 
             if (domainExtension[1] == PRIORITY_DOMAIN_EXTENSION) {
-                console.log("Prioritied " + getURL(resultsTitle[grouped[i][j]]))
+                console.log("Prioritied " + url);
                 sendToFrontOfGroup(i, j);
             }
 
@@ -98,11 +98,12 @@ console.log(grouped);
 // Print metrics!
 console.log("No. of unique URLs: " + grouped.length);
 console.log("No. of results grouped: " + noOfResultsGrouped);
-console.log("Percentage of results space saved: " + (noOfResultsGrouped/resultsTitle.length)*100 + "%");
+console.log("Percentage of results space saved: " + (noOfResultsGrouped/resultsBody.length)*100 + "%");
 
 // ***--------------------------------------------------------------------------------------***
 
 // similarityValue is the number of similar results, so We can just use the length of the group.
+// Could probably improve this function, it uses document.getElementById("expandButton" + index) alot
 function injectHTMLModification(similarityValue,group) {
     var index = grouped[group][0];
     try {            
@@ -110,7 +111,7 @@ function injectHTMLModification(similarityValue,group) {
         resultsBody[index].style.display = 'block';
 
         // Inject similarity value and expand button.
-        var elementToModify = resultsTitle[index];
+        var elementToModify = resultsBody[index].getElementsByClassName(RESULT_TITLE_CLASS)[0];
 
         elementToModify.innerHTML = elementToModify.innerHTML + " [" + similarityValue + "] <img id='expandButton" + index + "' src='" + GOOGLE_DOWN_ARROW_IMAGE_RESOURCE + "'/>";
         document.getElementById("expandButton" + index).style.transform = 'rotate(0deg)';
@@ -143,7 +144,7 @@ function injectHTMLModification(similarityValue,group) {
 function generateHTMLForInjection(group) {
     var header = "<hr> ";
 
-    var url = getDomainFromURL(getURL(resultsTitle[grouped[group][0]]))
+    var url = getDomainFromURL(getURL(resultsBody[grouped[group][0]].getElementsByClassName(RESULT_TITLE_CLASS)[0]))
     if (url != null) {
         var brief = "<br> Showing alternate results for \"" + url + "\". <br> <br> <div id='expandedContent>'";
     }
@@ -229,11 +230,6 @@ function findIndexOfGroup(domain) {
         index++;
     }
     return -1;
-}
-
-function printArrays() {
-    console.log(resultsTitle[i]);
-    console.log(domains[i]);
 }
 
 function sendToFrontOfGroup(group, groupIndexToMove) {
