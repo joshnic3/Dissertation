@@ -7,19 +7,12 @@ const RESULT_EXTRAS_CLASS = "result__extras";
 // Other contants.
 const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAJCAYAAAAGuM1UAAAARElEQVR4AZXLoQ3AMBAEwXFP7ielpcvHIQdPLwUs24HzMw8Gd5kuJq8Xs6DMJq9TUZ9PQEF1DmiozwELyryBoDp3sPcBE+gdTR3BcJAAAAAASUVORK5CYII=";
 
-// Likely to be replaced with a UI input and default.
-// Also, extension only works on "www.google.co.uk"
+// Likely to be replaced with a UI input..
+// Default will be null or blank;
 const PRIORITY_DOMAIN_EXTENSION = ".co.uk";
 
-// Extract data from HTML. (defo can be simplified to just on of these i think)
-// Refactor everything to be based off resultsBody. 
-// e.g. resultsBody[grouped[group][i]].getElementsByClassName(RESULT_TITLE_CLASS)[0]
-// then you can remove resultsTitle, Snippet and Extras
-// note for write up, doing it this way reduces the amount of ram used. show before and after.
+// Extract data from HTML.
 var resultsBody = document.getElementsByClassName(RESULTS_BODY_CONTAINER_CLASS);
-// var resultsTitle = document.getElementsByClassName(RESULT_TITLE_CLASS);
-// var resultsSnippet = document.getElementsByClassName(RESULT_SNIPPET_CLASS);
-// var resultsExtras = document.getElementsByClassName(RESULT_EXTRAS_CLASS);
 
 // Multi-dimensional array of URLs grouped according to similarity value, at the moment it is just a one to one match.
 var  grouped = [];
@@ -95,10 +88,16 @@ for(i = 0; i < grouped.length; i++) {
 // Print out data structure
 console.log(grouped);
 
+// Generate metrics
+var spaceSaved = Math.round((noOfResultsGrouped/resultsBody.length)*100) + "%";
+
 // Print metrics!
 console.log("No. of unique URLs: " + grouped.length);
 console.log("No. of results grouped: " + noOfResultsGrouped);
-console.log("Percentage of results space saved: " + (noOfResultsGrouped/resultsBody.length)*100 + "%");
+console.log("Percentage of results space saved: " + spaceSaved);
+
+// Send data to popup.
+chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped,uniqueUrls:grouped.length,spaceSaved:spaceSaved});
 
 // ***--------------------------------------------------------------------------------------***
 
