@@ -1,5 +1,5 @@
 {
-    "name": "testExtention",
+    "name": "DDG Plugin",
     "version": "0.1",
     "manifest_version": 2,
     "description": "This is a test Chrome Extention",

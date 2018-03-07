@@ -17,13 +17,18 @@ var isGrouped;
 var url;
 var noOfResultsGrouped = 0;
 
-// Read priority domain extension from storage.
+// Set defaults for options.
 var priorityDomainExtension = "none";
+var shortestExtentionFirst = true;
+var popularGroupsFirst = true;
 
 // Storage request is asynchronous, so the rest of the code has to be run in the callback function.
-chrome.storage.sync.get(['priorityDomainExtension'], function(items) {
+chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','popularGroupsFirst'], function(items) {
     // Set saved PDE value.
     priorityDomainExtension = items.priorityDomainExtension;
+    shortestExtentionFirst = items.shortestExtensionFirst;
+    popularGroupsFirst = items.popularGroupsFirst;
+
 
     // Redirect to duckduckgo.com/html if needed.
     if (window.location.href == "https://duckduckgo.com/") {
@@ -70,19 +75,31 @@ chrome.storage.sync.get(['priorityDomainExtension'], function(items) {
                     console.log("Caught Error: Could not hide element. (Index: " + grouped[i][j] + ")");
                 }
 
-                // Move prioritied domain extension to front of group.
+                // Sorting.
+
                 var url = getURL(resultsBody[grouped[i][j]].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
                 var domainName = getDomainFromURL(url);
                 var splitUrl = url.split("/");
                 var domainExtension = splitUrl[2].split(domainName);
 
-                if (domainExtension[1] == priorityDomainExtension) {
-                    console.log("Prioritied " + url);
-                    sendToFrontOfGroup(i, j);
+                // Prioritise shorted extention first. (is actually just no extensions at the moment).
+                if(shortestExtentionFirst) {
+                    // Split at domain extension, using same definition as above for consistancy.
+                    splitUrl = url.split(domainExtension[1])
+                    var extension = splitUrl[1];
+                    if(extension.length <= 1) {
+                        sendToFrontOfGroup(i, j);
+                        //console.log("Prioritied " + url);
+                    }
                 }
 
-                // Now maybe prioitise smallest URLs to ensure results closest to URL homepage are displayed first.
-                // The order of this for loop is important!
+                // Will mostlikely have to be in seperate for loop
+                // if (domainExtension[1] == priorityDomainExtension) {
+                //     //console.log("Prioritied " + url);
+                //     sendToFrontOfGroup(i, j);
+                // }
+
+                
             }
         }
     }
