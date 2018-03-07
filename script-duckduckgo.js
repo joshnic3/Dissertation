@@ -7,16 +7,6 @@ const RESULT_EXTRAS_CLASS = "result__extras";
 // Other contants.
 const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAJCAYAAAAGuM1UAAAARElEQVR4AZXLoQ3AMBAEwXFP7ielpcvHIQdPLwUs24HzMw8Gd5kuJq8Xs6DMJq9TUZ9PQEF1DmiozwELyryBoDp3sPcBE+gdTR3BcJAAAAAASUVORK5CYII=";
 
-// Likely to be replaced with a UI input..
-// Default will be null or blank;
-const PRIORITY_DOMAIN_EXTENSION = ".co.uk";
-
-// Redirect to duckduckgo.com/html if needed.
-console.log(window.location.href);
-if (window.location.href == "https://duckduckgo.com/") {
-    window.location.href = "http://duckduckgo.com/html";
-}
-
 // Extract data from HTML.
 var resultsBody = document.getElementsByClassName(RESULTS_BODY_CONTAINER_CLASS);
 
@@ -27,84 +17,101 @@ var isGrouped;
 var url;
 var noOfResultsGrouped = 0;
 
-// Traverse and group list of results.
-for(i = 0; i < resultsBody.length; i++) {
-    isGrouped = false;
+// Read priority domain extension from storage.
+var priorityDomainExtension = "none";
 
-    // Compare similarity of each domain with first element in group.
-    for(j = 0; j < grouped.length; j++) {
+// Storage request is asynchronous, so the rest of the code has to be run in the callback function.
+chrome.storage.sync.get(['priorityDomainExtension'], function(items) {
+    // Set saved PDE value.
+    priorityDomainExtension = items.priorityDomainExtension;
 
-        // Extract URL from next element to compare.
-        urlToCompare = getDomainFromURL(getURL(resultsBody[i].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
-        // Extract URL from first element in group.
-        groupedUrl = getDomainFromURL(getURL(resultsBody[grouped[j][0]].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
+    // Redirect to duckduckgo.com/html if needed.
+    if (window.location.href == "https://duckduckgo.com/") {
+        window.location.href = "http://duckduckgo.com/html";
+    }
 
-        // If there are similar results group them.
-        if (similarity(urlToCompare, groupedUrl) >= 1) {
-            grouped[j].push(i);
-            isGrouped = true
-            noOfResultsGrouped++;
+
+    // Traverse and group list of results.
+    for(i = 0; i < resultsBody.length; i++) {
+        isGrouped = false;
+
+        // Compare similarity of each domain with first element in group.
+        for(j = 0; j < grouped.length; j++) {
+
+            // Extract URL from next element to compare.
+            urlToCompare = getDomainFromURL(getURL(resultsBody[i].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
+            // Extract URL from first element in group.
+            groupedUrl = getDomainFromURL(getURL(resultsBody[grouped[j][0]].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
+
+            // If there are similar results group them.
+            if (similarity(urlToCompare, groupedUrl) >= 1) {
+                grouped[j].push(i);
+                isGrouped = true
+                noOfResultsGrouped++;
+            }
+        }
+
+        // If the current result is unique, create a new group.
+        if (!isGrouped){
+            grouped[j] = [i];
         }
     }
 
-    // If the current result is unique, create a new group.
-    if (!isGrouped){
-        grouped[j] = [i];
-    }
-}
+    // Process grouped elements.
+    for(i = 0; i < grouped.length; i++) {
+        if (grouped[i].length > 1) {
+            for(j = 0; j < grouped[i].length; j++) {
+                // Hide repeated results and catch any error.
+                try {
+                    resultsBody[grouped[i][j]].style.display = 'none';
+                }
+                catch(err)
+                {
+                    console.log("Caught Error: Could not hide element. (Index: " + grouped[i][j] + ")");
+                }
 
-// Process grouped elements.
-for(i = 0; i < grouped.length; i++) {
-    if (grouped[i].length > 1) {
-        for(j = 0; j < grouped[i].length; j++) {
-            // Hide repeated results and catch any error.
-            try {
-                resultsBody[grouped[i][j]].style.display = 'none';
+                // Move prioritied domain extension to front of group.
+                var url = getURL(resultsBody[grouped[i][j]].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
+                var domainName = getDomainFromURL(url);
+                var splitUrl = url.split("/");
+                var domainExtension = splitUrl[2].split(domainName);
+
+                if (domainExtension[1] == priorityDomainExtension) {
+                    console.log("Prioritied " + url);
+                    sendToFrontOfGroup(i, j);
+                }
+
+                // Now maybe prioitise smallest URLs to ensure results closest to URL homepage are displayed first.
+                // The order of this for loop is important!
             }
-            catch(err)
-            {
-                console.log("Caught Error: Could not hide element. (Index: " + grouped[i][j] + ")");
-            }
-
-            // Move prioritied domain extension to front of group.
-            var url = getURL(resultsBody[grouped[i][j]].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
-            var domainName = getDomainFromURL(url);
-            var splitUrl = url.split("/");
-            var domainExtension = splitUrl[2].split(domainName);
-
-            if (domainExtension[1] == PRIORITY_DOMAIN_EXTENSION) {
-                console.log("Prioritied " + url);
-                sendToFrontOfGroup(i, j);
-            }
-
-            // Now maybe prioitise smallest URLs to ensure results closest to URL homepage are displayed first.
-            // The order of this for loop is important!
         }
     }
-}
 
-// Process sorted data.
-for(i = 0; i < grouped.length; i++) {
-    if (grouped[i].length > 1) {
-        // Inject code modification into first element of each group.
-        injectHTMLModification(grouped[i].length - 1, i);
+    // Process sorted data.
+    for(i = 0; i < grouped.length; i++) {
+        if (grouped[i].length > 1) {
+            // Inject code modification into first element of each group.
+            injectHTMLModification(grouped[i].length - 1, i);
+        }
     }
-}
 
-// Print out data structure
-console.log(grouped);
+    // Print out data structure
+    console.log(grouped);
 
-// Generate metrics
-var spaceSaved = Math.round((noOfResultsGrouped/resultsBody.length)*100) + "%";
+    // Generate metrics
+    var spaceSaved = Math.round((noOfResultsGrouped/resultsBody.length)*100) + "%";
 
-// Print metrics!
-console.log("No. of unique URLs: " + grouped.length);
-console.log("No. of results grouped: " + noOfResultsGrouped);
-console.log("Percentage of results space saved: " + spaceSaved);
+    // Print metrics!
+    console.log("No. of unique URLs: " + grouped.length);
+    console.log("No. of results grouped: " + noOfResultsGrouped);
+    console.log("Percentage of results space saved: " + spaceSaved);
 
-// Send data to popup.
-chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped,uniqueUrls:grouped.length,spaceSaved:spaceSaved});
+    // Send data to popup.
+    chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped,uniqueUrls:grouped.length,spaceSaved:spaceSaved});
 
+});
+
+// Anything after here has to be a function.
 // ***--------------------------------------------------------------------------------------***
 
 // similarityValue is the number of similar results, so We can just use the length of the group.
