@@ -7,6 +7,13 @@ const RESULT_EXTRAS_CLASS = "result__extras";
 // Other contants.
 const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAJCAYAAAAGuM1UAAAARElEQVR4AZXLoQ3AMBAEwXFP7ielpcvHIQdPLwUs24HzMw8Gd5kuJq8Xs6DMJq9TUZ9PQEF1DmiozwELyryBoDp3sPcBE+gdTR3BcJAAAAAASUVORK5CYII=";
 
+
+// Display to the user that the extension is running on the DDG homepage.
+var homePageInjectionPoint = document.getElementsByClassName("content--home")[0];
+if (homePageInjectionPoint != null) {
+    homePageInjectionPoint.innerHTML += "<center><p>*Running Extension.</p></center>"; 
+}
+
 // Extract data from HTML.
 var resultsBody = document.getElementsByClassName(RESULTS_BODY_CONTAINER_CLASS);
 
@@ -65,6 +72,10 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
     // Process grouped elements.
     for(i = 0; i < grouped.length; i++) {
         if (grouped[i].length > 1) {
+
+            // Initiate variable to keep track of how many sendToFrontOfGroup() are made.
+            var count = 0;
+            
             for(j = 0; j < grouped[i].length; j++) {
                 // Hide repeated results and catch any error.
                 try {
@@ -86,6 +97,7 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
                 // Sort by prioritised domain extension.
                 if (domainExtension[1] == priorityDomainExtension) {
                     sendToFrontOfGroup(i, j);
+                    count++;
                 }
             }
 
@@ -99,7 +111,7 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
                 else
                 {
                     // Find previously sorted data in array.
-                    var minIndex = grouped[i].indexOf(findMin(grouped[i]));
+                    var minIndex = count;
         
                     // If minIndex <= 0 the group hasnt been altered.
                     if (minIndex > 0) {
@@ -312,6 +324,8 @@ function sortBySmallestExtension(group, firstIndex, lastIndex) {
     for(var i = firstIndex; i <= lastIndex; i++) {
         subArray.push(grouped[group][i]);
     }
+
+    console.log(subArray)
 
     // Sort sub array by length of domain extension.
     subArray.sort(function(a, b) {
