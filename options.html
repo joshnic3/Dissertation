@@ -1,0 +1,32 @@
+<html>
+    <head>
+        <!-- Want to put title in a seperate reference file. -->
+        <title>DDG Plugin Options</title>
+    </head>
+
+    <div id="mainContainer" style="margin: auto;width:40%;">
+        <div id="titleContainer" style="margin:auto;">
+            <center>
+                <img style="margin:auto;" width="80" height="80" src="http://duckduckgo.com/assets/common/dax-logo.svg">
+                <h1>
+                    DuckDuckGo Extension - Options
+                </h1>
+            </center>
+        </div>
+
+        <hr>
+
+        <form id="optionsForm">
+            <label>Priority Domain Extension: </label>
+            <input id="priorityDomainExtension" type="text" placeholder=".co.uk">
+            <br>
+            Shortest URL First: <input id="shortestExtensionFirstOption" type="checkbox" name="sef" value="true">
+            <br>
+            Push popular domains to the top of the results page: <input id="popularGroupsFirstOption" type="checkbox" name="pgf" value="true">
+            <br>
+            <input type="submit" value="Update" style="width:100%;background: #569d58; color: #ffffff;border: none;border-radius: 3px;">
+        </form>
+    </div>
+
+    <script src="options.js"></script>
+</html>

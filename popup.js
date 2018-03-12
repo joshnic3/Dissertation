@@ -19,17 +19,28 @@ function onReceive(request, sender, sendResponse){
 }
 
 // Called when popup is opened.
-function refreshStatisitcs() {
+function refresh() {
     // Retrieve saved data and display on popup.
-    var spaceSaved = chrome.storage.local.get(['spaceSaved', 'uniqueUrls', 'resultsGrouped'],function(items) {
+    chrome.storage.local.get(['spaceSaved', 'uniqueUrls', 'resultsGrouped'], function(items) {
         document.getElementById("spaceSavedOut").innerHTML = "Space Saved: " + items.spaceSaved;
         document.getElementById("uniqueUrlsOut").innerHTML = "No. of Unique Results: " + items.uniqueUrls;
         document.getElementById("resultsGroupedOut").innerHTML = "No. of Results Grouped: " + items.resultsGrouped;
     });
+
+    var priorityDomainExtension = "none";
+    chrome.storage.sync.get(['priorityDomainExtension'],function(items){
+        // Set saved PDE value.
+        document.getElementById("priorityDomainExtension").innerHTML = "Priority Domain Extension: " + items.priorityDomainExtension;
+    });
+    
+}
+
+function optionsLinkOnPress() {
+    alert("OPTIONS!");
 }
 
 // Refresh stats everytime popup is opened.
-window.onload = refreshStatisitcs;
+window.onload = refresh;
 
 // Setup message action listener.
 chrome.runtime.onMessage.addListener(onReceive);

@@ -1,15 +1,16 @@
 {
-    "name": "testExtention",
+    "name": "DDG Plugin",
     "version": "0.1",
     "manifest_version": 2,
     "description": "This is a test Chrome Extention",
+    "options_page": "options.html",
     "browser_action": {
         "default_icon": "icon.png",
         "default_popup": "popup.html"
     },
 
     "background": {
-        "scripts": ["popup.js"] // Required to make popup.js persistant.
+        "scripts": ["popup.js","options.js"] // Required to make popup.js persistant.
     },
     
     "permissions": [
