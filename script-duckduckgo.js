@@ -76,35 +76,49 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
                 }
 
                 // Sorting.
-
+                
+                // Extract required data for sorting.
                 var url = getURL(resultsBody[grouped[i][j]].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
                 var domainName = getDomainFromURL(url);
                 var splitUrl = url.split("/");
                 var domainExtension = splitUrl[2].split(domainName);
 
-                // Prioritise shorted extention first. (is actually just no extensions at the moment).
-                if(shortestExtentionFirst) {
-                    // Split at domain extension, using same definition as above for consistancy.
-                    splitUrl = url.split(domainExtension[1])
-                    var extension = splitUrl[1];
-                    if(extension.length <= 1) {
-                        sendToFrontOfGroup(i, j);
-                        //console.log("Prioritied " + url);
+                // Sort by prioritised domain extension.
+                if (domainExtension[1] == priorityDomainExtension) {
+                    sendToFrontOfGroup(i, j);
+                }
+            }
+
+            // Sort by smallest extension, without destroying previous sort.
+            if (shortestExtentionFirst) {
+                // Check if a priority domain has been set.
+                if (priorityDomainExtension.length < 1) {
+                    // If not, sort normally.
+                    sortBySmallestExtension(i, 0, grouped[i].length-1)
+                }
+                else
+                {
+                    // Find previously sorted data in array.
+                    var minIndex = grouped[i].indexOf(findMin(grouped[i]));
+        
+                    // If minIndex <= 0 the group hasnt been altered.
+                    if (minIndex > 0) {
+                        // Sort previously sorted section.
+                        sortBySmallestExtension(i, 0, minIndex -1)
+
+                        // Sort the rest.
+                        sortBySmallestExtension(i, minIndex, grouped[i].length-1)
+                    }
+                    else {
+                        // Nothing has been altered so just sort the whole thing.
+                        sortBySmallestExtension(i, 0, grouped[i].length-1)
                     }
                 }
-
-                // Will mostlikely have to be in seperate for loop
-                // if (domainExtension[1] == priorityDomainExtension) {
-                //     //console.log("Prioritied " + url);
-                //     sendToFrontOfGroup(i, j);
-                // }
-
-                
             }
         }
     }
 
-    // Process sorted data.
+    // Inject modified HTML.
     for(i = 0; i < grouped.length; i++) {
         if (grouped[i].length > 1) {
             // Inject code modification into first element of each group.
@@ -117,11 +131,6 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
 
     // Generate metrics
     var spaceSaved = Math.round((noOfResultsGrouped/resultsBody.length)*100) + "%";
-
-    // Print metrics!
-    console.log("No. of unique URLs: " + grouped.length);
-    console.log("No. of results grouped: " + noOfResultsGrouped);
-    console.log("Percentage of results space saved: " + spaceSaved);
 
     // Send data to popup.
     chrome.runtime.sendMessage({resultsGrouped:noOfResultsGrouped,uniqueUrls:grouped.length,spaceSaved:spaceSaved});
@@ -280,4 +289,55 @@ function sendToFrontOfGroup(group, groupIndexToMove) {
         // Reduce index.
         groupIndexToMove = groupIndexToMove - 1;
     }   
+}
+
+function findMin(array) {
+    var smallest = array[0];
+    for(var i = 1; i < array.length; i++) {
+        if (array[i] < smallest) {
+            smallest = array[i];
+        }
+    }
+    return smallest;
+}
+
+function sortBySmallestExtension(group, firstIndex, lastIndex) {
+    // create new array
+    // push required values to new array
+    // sort new array
+    // replace selected part of old array with new array
+
+    // Create sub array to sort.
+    var subArray = [];
+    for(var i = firstIndex; i <= lastIndex; i++) {
+        subArray.push(grouped[group][i]);
+    }
+
+    // Sort sub array by length of domain extension.
+    subArray.sort(function(a, b) {
+        // a and b only refer to the values in the array, I need to extract the url extensions.
+
+        // Extract a extension.
+        var url = getURL(resultsBody[a].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
+        var domainName = getDomainFromURL(url);
+        var splitUrl = url.split("/");
+        var domainExtension = splitUrl[2].split(domainName);
+        splitUrl = url.split(domainExtension[1])
+        a = splitUrl[1];
+
+        // Extract b extension.
+        var url = getURL(resultsBody[b].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
+        var domainName = getDomainFromURL(url);
+        var splitUrl = url.split("/");
+        var domainExtension = splitUrl[2].split(domainName);
+        splitUrl = url.split(domainExtension[1])
+        b = splitUrl[1];
+
+        return a.length - b.length
+    });
+
+    // Update main array.
+    for(var i = firstIndex; i <= lastIndex; i++) {
+        grouped[group][i] = subArray[i-firstIndex];
+    }
 }
