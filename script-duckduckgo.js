@@ -319,19 +319,11 @@ function sortBySmallestExtension(group, firstIndex, lastIndex) {
 
         // Extract a extension.
         var url = getURL(resultsBody[a].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
-        var domainName = getDomainFromURL(url);
-        var splitUrl = url.split("/");
-        var domainExtension = splitUrl[2].split(domainName);
-        splitUrl = url.split(domainExtension[1])
-        a = splitUrl[1];
+        a = url;
 
         // Extract b extension.
-        var url = getURL(resultsBody[b].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
-        var domainName = getDomainFromURL(url);
-        var splitUrl = url.split("/");
-        var domainExtension = splitUrl[2].split(domainName);
-        splitUrl = url.split(domainExtension[1])
-        b = splitUrl[1];
+        url = getURL(resultsBody[b].getElementsByClassName(RESULT_TITLE_CLASS)[0]);
+        b = url;
 
         return a.length - b.length
     });
