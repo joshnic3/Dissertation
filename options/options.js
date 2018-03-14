@@ -30,4 +30,3 @@ document.addEventListener('DOMContentLoaded', restoreSavedOptions);
 
 // Add actiion listener to form submit button.
 document.getElementById('optionsForm').addEventListener('submit',onReceive);
-

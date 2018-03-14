@@ -11,7 +11,7 @@ const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAAN
 // Display to the user that the extension is running on the DDG homepage.
 var homePageInjectionPoint = document.getElementsByClassName("content--home")[0];
 if (homePageInjectionPoint != null) {
-    homePageInjectionPoint.innerHTML += "<center><p>*Running Extension.</p></center>"; 
+    homePageInjectionPoint.innerHTML += "<center><p>*Running extension.</p></center>"; 
 }
 
 // Extract data from HTML.
@@ -75,7 +75,7 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
 
             // Initiate variable to keep track of how many sendToFrontOfGroup() are made.
             var count = 0;
-            
+
             for(j = 0; j < grouped[i].length; j++) {
                 // Hide repeated results and catch any error.
                 try {
@@ -252,14 +252,6 @@ function getDomainFromURL(url) {
     }    
 }
 
-function getSimilarityValue(item,items) {
-    totalSimilarityValue = 0; 
-    for(j = 0; j < items.length; j++) {
-        totalSimilarityValue += similarity(item,items[j]);
-    }
-    return (totalSimilarityValue - 1);
-}
-
 // Can change, e.g. to Levenshtein distance metric
 function similarity(s1, s2) {
     if (s1 == s2)
@@ -269,17 +261,6 @@ function similarity(s1, s2) {
     else {
         return 0;
     }
-}
-
-function findIndexOfGroup(domain) {
-    index = 0;
-    while (index == 0) {
-        if(similarity(domain,groupedDomains[index]) == 1) {
-            return index;
-        }
-        index++;
-    }
-    return -1;
 }
 
 function sendToFrontOfGroup(group, groupIndexToMove) {
@@ -324,8 +305,6 @@ function sortBySmallestExtension(group, firstIndex, lastIndex) {
     for(var i = firstIndex; i <= lastIndex; i++) {
         subArray.push(grouped[group][i]);
     }
-
-    console.log(subArray)
 
     // Sort sub array by length of domain extension.
     subArray.sort(function(a, b) {

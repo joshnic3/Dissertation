@@ -3,14 +3,14 @@
     "version": "0.1",
     "manifest_version": 2,
     "description": "This is a test Chrome Extention",
-    "options_page": "options.html",
+    "options_page": "options/options.html",
     "browser_action": {
-        "default_icon": "icon.png",
-        "default_popup": "popup.html"
+        "default_icon": "resources/icon.png",
+        "default_popup": "popup/popup.html"
     },
 
     "background": {
-        "scripts": ["popup.js","options.js"] // Required to make popup.js persistant.
+        "scripts": ["popup/popup.js","options/options.js"] // Required to make popup.js persistant.
     },
     
     "permissions": [
@@ -22,7 +22,7 @@
           //"matches": ["https://www.google.co.uk/*"],
           "matches": ["https://duckduckgo.com/*"],
           //"js": ["script.js"]
-          "js": ["script-duckduckgo.js"]
+          "js": ["content_script/script-duckduckgo.js"]
         }
       ]
 }
