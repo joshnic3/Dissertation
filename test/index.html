@@ -9,10 +9,36 @@
     <script src="../node_modules/jasmine-core/lib/jasmine-core/jasmine-html.js"></script>
     <script src="../node_modules/jasmine-core/lib/jasmine-core/boot.js"></script>
 
+    <!-- Basic mock of with Chrome storage API to remove errors. (Stubbing) -->
+    <script>
+      var chrome = {
+        storage: {
+          sync: {
+            get: function() {},
+            set: function() {}
+          },
+          local: {
+            get: function() {},
+            set: function() {}
+          }
+        },
+        runtime: {
+          onMessage: {
+            addListener: function() {}
+          }
+        }
+      }
+    </script>
+
     <!-- include source files here... -->
     <script src="../content_script/script-duckduckgo.js"></script>
+    <!-- <script src="../options/options.html"></script>
+    <script src="../options/options.js"></script> -->
+    <!-- <script src="../popup/popup.js"></script> -->
 
     <!-- include spec files here... -->
     <script src="spec/script-duckduckgo.spec.js"></script>
+    <!-- <script src="spec/options.spec.js"></script> -->
+
   </body>
 </html>
