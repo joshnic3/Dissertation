@@ -6,6 +6,9 @@ function onReceive() {
     // Get values from form.
     var priorityDomainExtension = document.getElementById('priorityDomainExtension').value;
 
+    // Prevent HTML injection.
+    priorityDomainExtension = priorityDomainExtension.replace("<", "&lt;").replace(">", "&gt;");
+
     // Save to Chrome storage (using sync as is a user option).
     chrome.storage.sync.set({'priorityDomainExtension': priorityDomainExtension}, function(){});
     chrome.storage.sync.set({'shortestExtensionFirst': document.getElementById('shortestExtensionFirstOption').checked}, function(){});
