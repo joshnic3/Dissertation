@@ -6,7 +6,8 @@ const RESULT_EXTRAS_CLASS = "result__extras";
 
 // Other contants.
 const GOOGLE_DOWN_ARROW_IMAGE_RESOURCE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAJCAYAAAAGuM1UAAAARElEQVR4AZXLoQ3AMBAEwXFP7ielpcvHIQdPLwUs24HzMw8Gd5kuJq8Xs6DMJq9TUZ9PQEF1DmiozwELyryBoDp3sPcBE+gdTR3BcJAAAAAASUVORK5CYII=";
-
+// Used to ignore results that dont want grouping. e.g. adverts.
+var CLASS_BLACKLIST = ["badge--ad"];
 
 // Display to the user that the extension is running on the DDG homepage.
 var homePageInjectionPoint = document.getElementsByClassName("content--home")[0];
@@ -42,24 +43,37 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
         window.location.href = "http://duckduckgo.com/html";
     }
 
-
     // Traverse and group list of results.
     for(i = 0; i < resultsBody.length; i++) {
         isGrouped = false;
 
+        // Blacklist cannot be empty, so this adds an irrelevant class if it is.
+        if (CLASS_BLACKLIST.length == 0) {
+            CLASS_BLACKLIST.append("thisshouldbeaclassthatnobodywilluse.1234554321");
+        }
+
         // Compare similarity of each domain with first element in group.
         for(j = 0; j < grouped.length; j++) {
 
-            // Extract URL from next element to compare.
-            urlToCompare = getDomainFromURL(getURL(resultsBody[i].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
-            // Extract URL from first element in group.
-            groupedUrl = getDomainFromURL(getURL(resultsBody[grouped[j][0]].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
+            // Check if contains black listed class.
+            for(var x = 0; x < CLASS_BLACKLIST.length; x++) {
+                if (resultsBody[i].getElementsByClassName(CLASS_BLACKLIST[x]).length > 0)
+                {
+                    // Ignore the balck listed items.
+                }
+                else {
+                    // Extract URL from next element to compare.
+                    urlToCompare = getDomainFromURL(getURL(resultsBody[i].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
+                    // Extract URL from first element in group.
+                    groupedUrl = getDomainFromURL(getURL(resultsBody[grouped[j][0]].getElementsByClassName(RESULT_TITLE_CLASS)[0]));
 
-            // If there are similar results group them.
-            if (similarity(urlToCompare, groupedUrl) >= 1) {
-                grouped[j].push(i);
-                isGrouped = true
-                noOfResultsGrouped++;
+                    // If there are similar results group them.
+                    if (similarity(urlToCompare, groupedUrl) >= 1) {
+                        grouped[j].push(i);
+                        isGrouped = true
+                        noOfResultsGrouped++;
+                    }
+                }
             }
         }
 
@@ -67,6 +81,7 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
         if (!isGrouped){
             grouped[j] = [i];
         }
+    
     }
 
     // Process grouped elements.
