@@ -59,7 +59,7 @@ chrome.storage.sync.get(['priorityDomainExtension','shortestExtensionFirst','pop
             for(var x = 0; x < CLASS_BLACKLIST.length; x++) {
                 if (resultsBody[i].getElementsByClassName(CLASS_BLACKLIST[x]).length > 0)
                 {
-                    // Ignore the balck listed items.
+                    // Ignore the black listed items.
                 }
                 else {
                     // Extract URL from next element to compare.
@@ -240,7 +240,7 @@ function generateHTMLForInjection(group) {
 
 function getURL(node) {
     // Index in the node array specifies which part of the the element holds the url.
-    // it was c[0] for google
+    // it was c[1] for DDG.
     var c = node.childNodes;
     var url = c[1].getAttribute("href");
     if ( ( url != null ) && ( url != "" ) ) {
